@@ -1,0 +1,6 @@
+prompt,score
+"You need to do language model rescoring in ASR. Given the 5-best hypotheses, you need to report the true transcription from the 5-best hypotheses.",0.0599245126932423
+This is a hard problem. Carefully summarize in ONE detailed sentence the following captions by different people describing the same audio. Do not allude to the existence of the multiple captions. Focus on describing the content of the audio. The transcriptions have some intialism for corporations.,0.0620960653533943
+"You have been given 5 different possible captions of the same audio, carefully summarize the given text in one sentence. Make sure to follow all the steps in identifying the right summary.",0.0635954707615945
+There is some financial data discussed in a meeting. You need to correctly give the true transcription from the 5-best hypotheses. Your task is to critically evaluate these option using english grammar. Mostly these transcriptions are in present continous tense.,0.0614744325526084
+There are five transcriptions hypotheses for a given audio and you need to report the true transcription by using english grammar rules.,0.0622511762576909
