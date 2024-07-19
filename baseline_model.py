@@ -1,12 +1,12 @@
 import os
-import requests
+import requests # type: ignore
 import json
 import re
-from dotenv import load_dotenv
-import jiwer
+from dotenv import load_dotenv # type: ignore
+import jiwer # type: ignore
 import time
-import anthropic
-from whisper.normalizers import EnglishTextNormalizer
+import anthropic # type: ignore
+from whisper.normalizers import EnglishTextNormalizer # type: ignore
 
 # Load environment variables from .env file
 load_dotenv()
