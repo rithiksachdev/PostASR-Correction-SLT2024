@@ -14,7 +14,19 @@ load_dotenv()
 client = anthropic.Anthropic()
 
 def read_json(file_path):
-    """Reads a JSON file and returns the data."""
+    """
+    Reads a JSON file and returns the data.
+
+    Args:
+    file_path (str): Path to the JSON file.
+
+    Returns:
+    dict: Parsed JSON data.
+
+    Raises:
+    FileNotFoundError: If the file does not exist.
+    ValueError: If the file is empty or contains invalid JSON.
+    """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"The file {file_path} does not exist.")
     
@@ -29,7 +41,17 @@ def read_json(file_path):
         return data
 
 def get_example_contexts(example_file, n, train_data):
-    """Retrieve n unique example contexts from the training data."""
+    """
+    Retrieve n unique example contexts from the training data.
+
+    Args:
+    example_file (file): File object containing example indices.
+    n (int): Number of unique examples to retrieve.
+    train_data (list): List of training data entries.
+
+    Returns:
+    list: List of unique example contexts.
+    """
     contexts = []
     examples = set()
     
@@ -49,26 +71,55 @@ def get_example_contexts(example_file, n, train_data):
     return contexts
 
 def construct_prompt(user_messages, assistant_messages, question_messages):
-    """Construct the full prompt for the API request."""
+    """
+    Construct the full prompt for the API request.
+
+    Args:
+    user_messages (list): List of user messages.
+    assistant_messages (list): List of assistant messages.
+    question_messages (list): List of question messages.
+
+    Returns:
+    str: Constructed prompt.
+    """
     prompt = ""
-    for i , (user_message, assistant_message, question_message) in enumerate(zip(user_messages, assistant_messages, question_messages)):
+    for i, (user_message, assistant_message, question_message) in enumerate(zip(user_messages, assistant_messages, question_messages)):
+        # Uncomment the line below if you want to include Human and Assistant labels
         # prompt += f"Human: {user_message}\n\nAssistant: {assistant_message}\n\n"
         prompt += f"{i+1} {question_message}\n\n {i+1} Assistant: ??\n\n"
     prompt += "Fill in the question marks and return the complete 20 results like this example: The true transcription from the 5-best hypotheses is: \"\". Make sure to return the response in the order of questions with each one inside the quotes."
     return prompt
 
 def extract_text_between_quotes(text):
-    """Extract and return the text between the first pair of quotes."""
+    """
+    Extract and return the text between the first pair of quotes.
+
+    Args:
+    text (str): Input text containing quotes.
+
+    Returns:
+    str: Text between the first pair of quotes.
+    """
     start = text.find('"') + 1
     end = text.find('"', start)
     return text[start:end]
 
 def call_api(system_prompt, full_prompt):
-    """Call the Claude API with the given prompt and return the response."""
+    """
+    Call the Claude API with the given prompt and return the response.
 
-    try:
-        print("-------Prompt------")
-        print(full_prompt[:1000])    
+    Args:
+    system_prompt (str): System-level prompt for the API.
+    full_prompt (str): Full prompt constructed for the API call.
+
+    Returns:
+    str: Response from the API.
+
+    Raises:
+    HTTPError: If an HTTP error occurs during the API call.
+    Exception: If any other error occurs.
+    """
+    try: 
         response = client.messages.create(
             model="claude-3-5-sonnet-20240620",
             max_tokens=1048,
@@ -86,7 +137,6 @@ def call_api(system_prompt, full_prompt):
                 }
             ]
         )
-        print(response)
         time.sleep(1)
         with open('api_response.txt', 'a') as f:
             f.write(response.content[0].text + '\n')
@@ -98,14 +148,26 @@ def call_api(system_prompt, full_prompt):
     return None
 
 def chat_rescore(system_prompt, batched_prompts, example_files, n, train_data):
-    """Perform language model rescoring using the Claude API."""
+    """
+    Perform language model rescoring using the Claude API.
+
+    Args:
+    system_prompt (str): System-level prompt for the API.
+    batched_prompts (list): List of batched prompts.
+    example_files (list): List of example files.
+    n (int): Number of examples to retrieve.
+    train_data (list): List of training data entries.
+
+    Returns:
+    str: Response from the API.
+    """
     user_messages = []
     assistant_messages = []
     question_messages = []
     for i, (test_txt, example_file) in enumerate(zip(batched_prompts, example_files)):
         contexts = get_example_contexts(example_file, n, train_data)
         if contexts:
-            context = contexts[ n - (i % 5) - 1]
+            context = contexts[n - (i % 5) - 1]
             if 'source' in context and 'target' in context:
                 hypotheses = context['source'].split('. ')
                 txt = "\n".join(hypotheses)
@@ -118,18 +180,51 @@ def chat_rescore(system_prompt, batched_prompts, example_files, n, train_data):
     
     if user_messages and assistant_messages:
         full_prompt = construct_prompt(user_messages, assistant_messages, question_messages)
-        return call_api(system_prompt,full_prompt)
+        return call_api(system_prompt, full_prompt)
     return None
 
 def normalize_text(text, normalizer):
-    """Normalize text using EnglishTextNormalizer."""
+    """
+    Normalize text using EnglishTextNormalizer.
+
+    Args:
+    text (str): Input text to normalize.
+    normalizer (EnglishTextNormalizer): Normalizer object.
+
+    Returns:
+    str: Normalized text.
+    """
     return normalizer(text)
 
 def calculate_wer(reference, hypothesis):
-    """Calculate Word Error Rate (WER) using jiwer."""
+    """
+    Calculate Word Error Rate (WER) using jiwer.
+
+    Args:
+    reference (str): Reference text.
+    hypothesis (str): Hypothesis text.
+
+    Returns:
+    float: Calculated WER.
+    """
     return jiwer.wer(reference, hypothesis)
 
 def calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_path, example_dir, result_file_path, n, batch_num):
+    """
+    Calculate Word Error Rate (WER) with a given system prompt.
+
+    Args:
+    system_prompt (str): System-level prompt for the API.
+    test_data_path (str): Path to the test data JSON file.
+    train_data_path (str): Path to the training data JSON file.
+    example_dir (str): Directory containing example files.
+    result_file_path (str): Path to the result file.
+    n (int): Number of examples to retrieve.
+    batch_num (int): Number of prompts to process in each batch.
+
+    Returns:
+    float: Overall WER.
+    """
     # Load test data
     test_data = read_json(test_data_path)
     
@@ -156,13 +251,9 @@ def calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_p
             if len(batched_prompts) == batch_num:
                 response = chat_rescore(system_prompt, batched_prompts, example_files, n, train_data)
                 if response:
-                    print("------RESP--------")
-                    print(response)
                     results = [part.strip() for part in response.split('\n') if part.strip()]
                     if not re.match(r'^\d+\.', results[0]):
                         results = results[1:]
-                    print("-------RESULT------")
-                    print(results)
                     for j, (result, question) in enumerate(zip(results, test_data[i-batch_num+1:i+1])):
                         hypothesis = extract_text_between_quotes(result)
                         if hypothesis:
@@ -177,7 +268,6 @@ def calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_p
                 # Reset batched prompts and example files for the next batch
                 batched_prompts = []
                 example_files = []
-                # break
         count = i
     
     # Process any remaining prompts
@@ -222,4 +312,3 @@ if __name__ == "__main__":
     result_file = "knn_result.txt"
     batch_num = 20
     wer = calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_path, example_dir, result_file, 5, batch_num)
-    print(f"WER: {wer}")
