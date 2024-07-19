@@ -5,7 +5,7 @@ from tqdm import tqdm
 import time
 import random
 import anthropic
-from baseline_model2 import calculate_wer_with_system_prompt
+from baseline_model import calculate_wer_with_system_prompt
 
 client = anthropic.Anthropic()
 
