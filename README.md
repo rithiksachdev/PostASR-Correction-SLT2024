@@ -15,8 +15,6 @@ Building upon the strength of modern large language models (LLMs), generative er
 - [Algorithm Details](#algorithm-details)
 - [Examples](#examples)
 - [Acknowledgments](#acknowledgments)
-- [License](#license)
-
 
 ## Installation
 
