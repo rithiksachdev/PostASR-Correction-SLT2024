@@ -43,8 +43,16 @@ Building upon the strength of modern large language models (LLMs), generative er
 To run the genetic algorithm for prompt optimization, use the following command:
 
 ```bash
-python main.py --prompt_file prompts.csv --final_solution results.csv --num_initial_prompts 5 --population_size 5 --num_generations 3 --top_k 4 --output_dir ./output
+python evolutionary_prompt_script.py --prompt_file prompts.csv --final_solution results.csv --num_initial_prompts 5 --population_size 5 --num_generations 3 --top_k 4 --output_dir ./output
 ```
+
+To run the model with zero shot learning, use the commands 
+
+```bash
+python baseline.py --system_prompt "Your system prompt here" --test_data_path ./HyPoradise-v0/test/test_wsj_score.json --train_data_path ./HyPoradise-v0/train/train_chime4.json --example_dir Hyporadise-icl/examples/knn/ --result_file knn_result.txt --batch_num 20
+```
+
+Note: Please check the baseline.py line 88 and 90 before running the script.
 
 ### Arguments
 - `--prompt_file`: Path to the file containing initial prompts. Default is `prompts.csv`.
@@ -87,6 +95,23 @@ I also want to thank [WAVLab](https://www.wavlab.org/) for connecting and hostin
 Our codebase is based on the following repository. Thanks for open-sourcing!
 
 - [EvoPrompt](https://github.com/beeevita/EvoPrompt)
+
+## Licence
+
+=======
+    Copyright 2024 Rithik Sachdev
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
 ---
 

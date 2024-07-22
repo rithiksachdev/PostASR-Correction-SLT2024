@@ -6,6 +6,7 @@ from dotenv import load_dotenv # type: ignore
 import jiwer # type: ignore
 import time
 import anthropic # type: ignore
+import argparse
 from whisper.normalizers import EnglishTextNormalizer # type: ignore
 
 # Load environment variables from .env file
@@ -84,10 +85,12 @@ def construct_prompt(user_messages, assistant_messages, question_messages):
     """
     prompt = ""
     for i, (user_message, assistant_message, question_message) in enumerate(zip(user_messages, assistant_messages, question_messages)):
-        # Uncomment the line below if you want to include Human and Assistant labels
-        # prompt += f"Human: {user_message}\n\nAssistant: {assistant_message}\n\n"
+        # comment the line 88 and 90 if you want to do zero shot learning
+        prompt += f"Human: {user_message}\n\nAssistant: {assistant_message}\n\n"
         prompt += f"{i+1} {question_message}\n\n {i+1} Assistant: ??\n\n"
-    prompt += "Fill in the question marks and return the complete 20 results like this example: The true transcription from the 5-best hypotheses is: \"\". Make sure to return the response in the order of questions with each one inside the quotes."
+    prompt += "Fill in the question marks and return the complete 20 result like the example: The true transcription from the 5-best hypotheses is: \"\". Make sure to return the response in the order of questions."
+    # Use this prompt filler when using zero shot learning
+    # prompt += "Fill in the question marks and return the complete 20 results like this example: The true transcription from the 5-best hypotheses is: \"\". Make sure to return the response in the order of questions with each one inside the quotes."
     return prompt
 
 def extract_text_between_quotes(text):
@@ -305,10 +308,16 @@ def calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_p
     return wer
 
 if __name__ == "__main__":
-    system_prompt = "You are faced with a complex linguistic challenge: meticulously examine five diverse transcription hypotheses for a specific audio recording. Your task is to synthesize these interpretations into a single, comprehensive sentence that accurately captures the essence of the audio content. Employ impeccable English grammar, all sentences are mostly in simple present tense and style to craft a cohesive and precise representation of the true transcription, without referencing the multiple sources or the process of analysis. These transcriptions have financial transcriptions and might have initialisms that need to be seperated into letters."
-    test_data_path = "./HyPoradise-v0/test/test_wsj_score.json"
-    train_data_path = "./HyPoradise-v0/train/train_chime4.json"
-    example_dir = "Hyporadise-icl/examples/knn/"
-    result_file = "knn_result.txt"
-    batch_num = 20
-    wer = calculate_wer_with_system_prompt(system_prompt, test_data_path, train_data_path, example_dir, result_file, 5, batch_num)
+    parser = argparse.ArgumentParser(description="Calculate WER with system prompt")
+    parser.add_argument("--system_prompt", type=str, default="You are faced with a complex linguistic challenge: meticulously examine five diverse transcription hypotheses for a specific audio recording. Your task is to synthesize these interpretations into a single, comprehensive sentence that accurately captures the essence of the audio content. Employ impeccable English grammar, all sentences are mostly in simple present tense and style to craft a cohesive and precise representation of the true transcription, without referencing the multiple sources or the process of analysis. These transcriptions have financial transcriptions and might have initialisms that need to be seperated into letters.", help="System-level prompt for the API.")
+    parser.add_argument("--test_data_path", type=str, default="./HyPoradise-v0/test/test_wsj_score.json", help="Path to the test data JSON file.")
+    parser.add_argument("--train_data_path", type=str, default="./HyPoradise-v0/train/train_chime4.json", help="Path to the training data JSON file.")
+    parser.add_argument("--example_dir", type=str, default="Hyporadise-icl/examples/knn/", help="Directory containing example files.")
+    parser.add_argument("--result_file", type=str, default="knn_result.txt", help="Path to the result file.")
+    parser.add_argument("--batch_num", type=int, default=20, help="Number of prompts to process in each batch.")
+    parser.add_argument("--n", type=int, default=5, help="Number of examples to retrieve.")
+
+    args = parser.parse_args()
+
+    wer = calculate_wer_with_system_prompt(args.system_prompt, args.test_data_path, args.train_data_path, args.example_dir, args.result_file, args.n, args.batch_num)
+    print(f"WER: {wer}")
