@@ -97,7 +97,6 @@ Our codebase is based on the following repository. Thanks for open-sourcing!
 
 ## Licence
 
-=======
     Copyright 2024 Rithik Sachdev
 
     Licensed under the Apache License, Version 2.0 (the "License");
